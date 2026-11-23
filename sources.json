@@ -1,0 +1,18 @@
+[
+  {
+    "name": "ГУ МЧС России по Новосибирской области",
+    "feed": "https://54.mchs.gov.ru/deyatelnost/press-centr/vse_novosti/rss",
+    "category": "Происшествия",
+    "enabled": false,
+    "allow_all": false,
+    "note": "Оставлен выключенным до проверки фактического RSS URL и условий использования."
+  },
+  {
+    "name": "Местные СМИ Купинского района",
+    "feed": "",
+    "category": "Купино",
+    "enabled": false,
+    "allow_all": false,
+    "note": "Подключать только после подтверждения RSS/API и правил автоматического индексирования."
+  }
+]
