@@ -52,12 +52,13 @@ def parse(xml, source):
             link = (item.findtext("link") or "").strip()
             summary = clean(item.findtext("description") or item.findtext("summary"))
             date = item.findtext("pubDate") or item.findtext("published") or ""
+            publisher = clean(item.findtext("source"))
         text = (title + " " + summary).lower()
         if not title or not link or any(x in text for x in EXCLUDE): continue
         if not source.get("allow_all", False) and not any(x in text for x in KEYWORDS): continue
         uid = hashlib.sha256(link.split("#")[0].encode()).hexdigest()[:20]
         out.append({"id":uid,"title":title[:240],"summary":summary[:360],"url":link,
-                    "source":source["name"],"category":source.get("category","Район"),
+                    "source":(publisher if not atom and publisher else source["name"]),"category":source.get("category","Район"),
                     "published_at":date_iso(date),"collected_at":datetime.now(timezone.utc).isoformat()})
     return out
 
