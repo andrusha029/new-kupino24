@@ -8,8 +8,8 @@
 <div class="ticker"><div class="wrap">Новости Купино и населённых пунктов Купинского района — в одном месте</div></div>
 <main class="wrap"><section class="hero"><div class="cat" style="color:#d9edff">КУПИНСКИЙ РАЙОН</div><h2>Новости нашего района</h2><p>Актуальные сообщения, важные события и полезная информация для жителей Купино и сельских поселений.</p></section>
 <div class="layout"><section id="latest"><div class="heading"><h2>Последние публикации</h2><span class="muted" id="today"></span></div><p id="status">Загружаем ленту новостей…</p><div class="feed" id="news"><div class="empty">Лента пока пуста. Новости появятся после подключения проверенных источников.</div></div></section>
-<aside><div class="panel" id="weather-panel"><h3>Погода в Шаитике</h3><div class="weather" id="weather">
-<div class="weather-head"><div><div class="weather-place">Шаитик · Новосибирская область</div><div class="weather-temp" id="w-temp">Загрузка…</div><div id="w-desc" class="weather-desc">Получаем прогноз</div></div><div class="weather-symbol" id="w-symbol">🌤️</div></div>
+<aside><div class="panel" id="weather-panel"><h3>Погода в Купино</h3><div class="weather" id="weather">
+<div class="weather-head"><div><div class="weather-place">Купино · Новосибирская область</div><div class="weather-temp" id="w-temp">Загрузка…</div><div id="w-desc" class="weather-desc">Получаем прогноз</div></div><div class="weather-symbol" id="w-symbol">🌤️</div></div>
 <div class="weather-details"><span>Ощущается <b id="w-feels">—</b></span><span>Ветер <b id="w-wind">—</b></span><span>Влажность <b id="w-humidity">—</b></span><span>Осадки <b id="w-rain">—</b></span></div>
 <div class="forecast-title">Прогноз на 7 дней</div><div class="forecast" id="w-days"></div>
 <div class="weather-foot"><span id="w-updated">—</span><button type="button" id="w-refresh">Обновить</button></div>
@@ -30,7 +30,7 @@ async function loadWeather(){
  const temp=document.getElementById('w-temp'),desc=document.getElementById('w-desc'),days=document.getElementById('w-days');
  temp.textContent='…';desc.textContent='Обновляем прогноз';
  try{
-  const url='https://api.open-meteo.com/v1/forecast?latitude=54.647953&longitude=77.584976&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=Asia%2FNovosibirsk';
+  const url='https://api.open-meteo.com/v1/forecast?latitude=54.364235&longitude=77.295687&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=Asia%2FNovosibirsk';
   const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status);
   const data=await response.json(),now=data.current,d=data.daily;
   const info=weatherInfo(now.weather_code);
