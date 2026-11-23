@@ -14,5 +14,29 @@
     "enabled": true,
     "allow_all": false,
     "note": "Дополнительный поисковый запрос по району; повторные публикации удаляются по ссылке."
+  },
+  {
+    "name": "Google Новости — Новосибирская область",
+    "feed": "https://news.google.com/rss/search?q=%22%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D0%B8%D0%B1%D0%B8%D1%80%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C%22%20OR%20%22%D0%B2%20%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D0%B8%D0%B1%D0%B8%D1%80%D1%81%D0%BA%D0%BE%D0%B9%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D0%B8%22&hl=ru&gl=RU&ceid=RU:ru",
+    "category": "Новосибирская область",
+    "enabled": true,
+    "allow_all": false,
+    "note": "Региональная лента новостей Новосибирской области."
+  },
+  {
+    "name": "VN.ru — Новости Новосибирской области",
+    "feed": "https://news.google.com/rss/search?q=site%3Avn.ru%2Fnews%20%22%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D0%B8%D0%B1%D0%B8%D1%80%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C%22%20OR%20%22%D0%B2%20%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D0%B8%D0%B1%D0%B8%D1%80%D1%81%D0%BA%D0%BE%D0%B9%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D0%B8%22&hl=ru&gl=RU&ceid=RU:ru",
+    "category": "Новосибирская область",
+    "enabled": true,
+    "allow_all": false,
+    "note": "Публикации регионального издания VN.ru через RSS-поиск."
+  },
+  {
+    "name": "Горсайт — Новости Новосибирской области",
+    "feed": "https://news.google.com/rss/search?q=site%3Agorsite.ru%20%22%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D0%B8%D0%B1%D0%B8%D1%80%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C%22%20OR%20%22%D0%B2%20%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D0%B8%D0%B1%D0%B8%D1%80%D1%81%D0%BA%D0%BE%D0%B9%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D0%B8%22&hl=ru&gl=RU&ceid=RU:ru",
+    "category": "Новосибирская область",
+    "enabled": true,
+    "allow_all": false,
+    "note": "Публикации регионального портала Горсайт через RSS-поиск."
   }
 ]
