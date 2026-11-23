@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect short, attributed RSS/Atom news summaries for the district site."""
+"""Collect short, attributed RSS/Atom news summaries and publisher preview photos."""
 import hashlib, html, json, re, sys
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
