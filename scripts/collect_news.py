@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Collect short, attributed RSS/Atom news summaries and publisher preview photos."""
 import hashlib, html, json, re, sys
+from collections import Counter
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -89,7 +90,7 @@ def preview_image(url):
     return ""
 
 
-def illustrative_image(title, summary=""):
+def illustrative_image(title, summary="", used_images=None):
     """Find a relevant openly licensed illustration on Wikimedia Commons."""
     text = (title + " " + summary).lower()
     topics = [
@@ -107,7 +108,7 @@ def illustrative_image(title, summary=""):
     params = urlencode({
         "action": "query", "generator": "search",
         "gsrsearch": "filetype:bitmap " + query,
-        "gsrnamespace": 6, "gsrlimit": 1,
+        "gsrnamespace": 6, "gsrlimit": 12,
         "prop": "imageinfo", "iiprop": "url|extmetadata",
         "iiurlwidth": 1000, "format": "json", "origin": "*"
     })
@@ -120,7 +121,7 @@ def illustrative_image(title, summary=""):
         for page in pages.values():
             info = (page.get("imageinfo") or [{}])[0]
             image = info.get("thumburl") or info.get("url", "")
-            if image.startswith("https://"):
+            if image.startswith("https://") and image not in (used_images or set()):
                 meta = info.get("extmetadata", {})
                 artist = clean(meta.get("Artist", {}).get("value", ""))
                 license_name = clean(meta.get("LicenseShortName", {}).get("value", ""))
@@ -192,14 +193,22 @@ def main():
             print(source["name"], len(entries))
         except Exception as exc:
             errors.append(str(exc)); print("WARN", source["name"], exc, file=sys.stderr)
-    # Fill missing images from public Wikimedia Commons photos; these are illustrations, not evidence from the event.
-    missing = [x for x in sorted(by_id.values(), key=lambda x:x.get("published_at",""), reverse=True) if not x.get("image")][:25]
-    for item in missing:
-        item["image"] = preview_image(item.get("url",""))
-        if not item.get("image"):
-            found = illustrative_image(item.get("title",""), item.get("summary",""))
-            if found:
-                item.update(found)
+    # Replace repeated feed thumbnails and fill missing images with distinct, attributed Commons illustrations.
+    all_items = list(by_id.values())
+    image_counts = Counter(x.get("image") for x in all_items if x.get("image"))
+    needs_image = [x for x in sorted(all_items, key=lambda x:x.get("published_at",""), reverse=True)
+                   if not x.get("image") or image_counts.get(x.get("image"), 0) > 1][:50]
+    used_images = {x.get("image") for x in all_items
+                   if x.get("image") and image_counts.get(x.get("image"), 0) == 1}
+    for item in needs_image:
+        found = illustrative_image(item.get("title",""), item.get("summary",""), used_images)
+        if found:
+            item.update(found)
+            used_images.add(found["image"])
+        elif image_counts.get(item.get("image"), 0) > 1:
+            item["image"] = ""
+            item.pop("image_page", None)
+            item.pop("image_credit", None)
     items = sorted(by_id.values(), key=lambda x:x.get("published_at",""), reverse=True)[:250]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps(items,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
