@@ -32,6 +32,34 @@ def date_iso(value):
                 pass
     return datetime.now(timezone.utc).isoformat()
 
+def resolve_article_url(url):
+    """Turn Google News RSS redirect links into the publisher's article URL."""
+    if "news.google.com" not in (url or "").lower():
+        return url
+    try:
+        req = Request(url, headers={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept":"text/html,application/xhtml+xml"})
+        with urlopen(req, timeout=15) as response:
+            final_url = response.geturl()
+            page = response.read(500000).decode("utf-8", "ignore")
+        if "news.google.com" not in final_url.lower():
+            return final_url
+        # Some Google News responses expose the publisher URL as canonical metadata.
+        patterns = (
+            r"""<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)""",
+            r"""<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)""",
+            r"""<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:url["']""",
+            r"""<meta[^>]+http-equiv=["']refresh["'][^>]+content=["'][^;]+;\s*url=([^"']+)""",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, page, re.I)
+            if match:
+                candidate = urljoin(final_url, html.unescape(match.group(1).strip()))
+                if candidate.startswith("https://") and "news.google.com" not in candidate.lower():
+                    return candidate
+    except Exception as exc:
+        print("LINK WARN", url[:100], str(exc)[:160], file=sys.stderr)
+    return url
+
 def preview_image(url):
     """Resolve publisher pages and read their public preview image."""
     try:
@@ -94,7 +122,7 @@ def parse(xml, source):
                 node = item.find(tag)
                 if node is not None and node.attrib.get("url"):
                     image = node.attrib["url"]; break
-        text = (title + " " + summary).lower()
+        link = resolve_article_url(link)\n        text = (title + " " + summary).lower()
         if not title or not link or any(x in text for x in EXCLUDE): continue
         if not source.get("allow_all", False) and not any(x in text for x in KEYWORDS): continue
         uid = hashlib.sha256(link.split("#")[0].encode()).hexdigest()[:20]
