@@ -33,24 +33,31 @@ def date_iso(value):
     return datetime.now(timezone.utc).isoformat()
 
 def preview_image(url):
-    """Read the publisher's public Open Graph preview image, if available."""
+    """Resolve publisher pages and read their public preview image."""
     try:
-        req = Request(url, headers={"User-Agent":"Mozilla/5.0 (compatible; KupinskiyDistrictNewsBot/1.0)"})
-        with urlopen(req, timeout=5) as response:
-            page = response.read(350000).decode("utf-8", "ignore")
+        req = Request(url, headers={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept":"text/html,application/xhtml+xml"})
+        with urlopen(req, timeout=15) as response:
+            page = response.read(700000).decode("utf-8", "ignore")
             base = response.geturl()
-        for pattern in (
+        patterns = (
             r"""<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)""",
             r"""<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']""",
             r"""<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)""",
-        ):
+            r"""<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)""",
+        )
+        for pattern in patterns:
             match = re.search(pattern, page, re.I)
             if match:
                 image = urljoin(base, html.unescape(match.group(1).strip()))
                 if image.startswith(("https://", "http://")):
                     return image
-    except Exception:
-        pass
+        match = re.search(r"""<img[^>]+src=["']([^"']+)""", page, re.I)
+        if match:
+            image = urljoin(base, html.unescape(match.group(1).strip()))
+            if image.startswith(("https://", "http://")):
+                return image
+    except Exception as exc:
+        print("IMAGE WARN", url[:100], str(exc)[:160], file=sys.stderr)
     return ""
 
 def parse(xml, source):
@@ -75,10 +82,14 @@ def parse(xml, source):
         else:
             title = clean(item.findtext("title"))
             link = (item.findtext("link") or "").strip()
-            summary = clean(item.findtext("description") or item.findtext("summary"))
+            raw_description = item.findtext("description") or item.findtext("summary") or ""
+            summary = clean(raw_description)
             date = item.findtext("pubDate") or item.findtext("published") or ""
             publisher = clean(item.findtext("source"))
             image = ""
+            img_match = re.search(r'<img[^>]+src="([^"]+)"', raw_description, re.I)
+            if img_match:
+                image = urljoin(link, html.unescape(img_match.group(1)))
             for tag in ("{http://search.yahoo.com/mrss/}thumbnail", "{http://search.yahoo.com/mrss/}content", "enclosure"):
                 node = item.find(tag)
                 if node is not None and node.attrib.get("url"):
