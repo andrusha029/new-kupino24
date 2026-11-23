@@ -22,7 +22,7 @@ fetch('./data/news.json?v='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)thr
  const date=n.published_at?new Date(n.published_at).toLocaleString('ru-RU'):'Дата не указана';
  document.title=n.title+' — Купинский район';
  root.className='article';
- root.innerHTML='<div class="cat">'+esc(n.category||'Район')+'</div><h2>'+esc(n.title)+'</h2><div class="date">'+esc(date)+'</div><div class="body">'+esc(n.summary||'Краткий анонс этой публикации пока не предоставлен источником.')+'</div><div class="source">Источник: '+esc(n.source||'Внешняя публикация')+'<p><a href="'+esc(n.url)+'" target="_blank" rel="noopener noreferrer">Читать полный материал на сайте источника ↗</a></p></div><div class="notice">На этой странице размещён краткий анонс и ссылка на первоисточник. Полный материал принадлежит его издателю.</div>';
+ root.innerHTML='<div class="cat">'+esc(n.category||'Район')+'</div><h2>'+esc(n.title)+'</h2><div class="date">'+esc(date)+'</div><div class="body">'+esc(n.summary||'Краткий анонс этой публикации пока не предоставлен источником.')+'</div><div class="source">Источник: '+esc(n.source||'Внешняя публикация')+'<p><a href="'+esc(n.url)+'" target="_self">Открыть первоисточник ↗</a></p></div><div class="notice">На этой странице размещён краткий анонс и ссылка на первоисточник. Полный материал принадлежит его издателю.</div>';
 }).catch(()=>{document.getElementById('article').textContent='Не удалось загрузить публикацию. Проверьте подключение к интернету.'});
 </script>
 </body></html>
