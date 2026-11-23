@@ -4,7 +4,7 @@ import hashlib, html, json, re, sys
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode
 from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
@@ -88,6 +88,48 @@ def preview_image(url):
         print("IMAGE WARN", url[:100], str(exc)[:160], file=sys.stderr)
     return ""
 
+
+def illustrative_image(title, summary=""):
+    """Find a relevant openly licensed illustration on Wikimedia Commons."""
+    text = (title + " " + summary).lower()
+    topics = [
+        (("голол", "снег", "метел", "мороз", "погод", "дожд", "ветер", "зима"), "winter road snow weather"),
+        (("спорт", "марафон", "футбол", "хоккей", "соревн", "турнир"), "sports competition"),
+        (("пожар", "дтп", "авари", "происшеств", "спасател", "мчс"), "fire rescue emergency"),
+        (("школ", "учител", "образован", "детсад", "учен"), "school education"),
+        (("урожа", "сельхоз", "аграр", "ферм", "пол", "трактор"), "agriculture farming"),
+        (("больниц", "медицин", "врач", "здоров"), "hospital healthcare"),
+        (("завод", "производств", "предприят", "эконом", "промышлен"), "industry factory"),
+        (("концерт", "театр", "музе", "культур", "фестив"), "culture concert"),
+        (("строитель", "дорог", "ремонт", "благоустрой"), "road construction"),
+    ]
+    query = next((q for words, q in topics if any(word in text for word in words)), "Novosibirsk Oblast Siberia")
+    params = urlencode({
+        "action": "query", "generator": "search",
+        "gsrsearch": "filetype:bitmap " + query,
+        "gsrnamespace": 6, "gsrlimit": 1,
+        "prop": "imageinfo", "iiprop": "url|extmetadata",
+        "iiurlwidth": 1000, "format": "json", "origin": "*"
+    })
+    try:
+        req = Request("https://commons.wikimedia.org/w/api.php?" + params,
+                      headers={"User-Agent": "KupinskiyDistrictNewsBot/1.0 (news image lookup)"})
+        with urlopen(req, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8", "ignore"))
+        pages = data.get("query", {}).get("pages", {})
+        for page in pages.values():
+            info = (page.get("imageinfo") or [{}])[0]
+            image = info.get("thumburl") or info.get("url", "")
+            if image.startswith("https://"):
+                meta = info.get("extmetadata", {})
+                artist = clean(meta.get("Artist", {}).get("value", ""))
+                license_name = clean(meta.get("LicenseShortName", {}).get("value", ""))
+                credit = "Wikimedia Commons" + ((" · " + artist[:160]) if artist else "") + ((" · " + license_name) if license_name else "")
+                return {"image": image, "image_page": info.get("descriptionurl", ""), "image_credit": credit}
+    except Exception as exc:
+        print("COMMONS IMAGE WARN", str(exc)[:160], file=sys.stderr)
+    return {}
+
 def parse(xml, source):
     root = ET.fromstring(xml)
     items = root.findall(".//item")
@@ -150,10 +192,14 @@ def main():
             print(source["name"], len(entries))
         except Exception as exc:
             errors.append(str(exc)); print("WARN", source["name"], exc, file=sys.stderr)
-    # Backfill publisher preview photos for older items that predate image extraction.
-    for item in sorted(by_id.values(), key=lambda x:x.get("published_at",""), reverse=True)[:60]:
+    # Fill missing images from public Wikimedia Commons photos; these are illustrations, not evidence from the event.
+    missing = [x for x in sorted(by_id.values(), key=lambda x:x.get("published_at",""), reverse=True) if not x.get("image")][:25]
+    for item in missing:
+        item["image"] = preview_image(item.get("url",""))
         if not item.get("image"):
-            item["image"] = preview_image(item.get("url",""))
+            found = illustrative_image(item.get("title",""), item.get("summary",""))
+            if found:
+                item.update(found)
     items = sorted(by_id.values(), key=lambda x:x.get("published_at",""), reverse=True)[:250]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps(items,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
