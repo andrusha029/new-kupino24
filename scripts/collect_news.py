@@ -14,15 +14,22 @@ KEYWORDS = ["купин", "купино", "новосибирск", "новос�
 EXCLUDE = ["реклама", "промокод"]
 
 def clean(value):
-    return re.sub(r"\\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", value or ""))).strip()
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", value or ""))).strip()
 
 def date_iso(value):
-    try:
-        dt = parsedate_to_datetime(value)
-        if dt.tzinfo is None: dt = dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc).isoformat()
-    except Exception:
-        return datetime.now(timezone.utc).isoformat()
+    if value:
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None: dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc).isoformat()
+        except ValueError:
+            try:
+                dt = parsedate_to_datetime(value)
+                if dt.tzinfo is None: dt = dt.replace(tzinfo=timezone.utc)
+                return dt.astimezone(timezone.utc).isoformat()
+            except Exception:
+                pass
+    return datetime.now(timezone.utc).isoformat()
 
 def parse(xml, source):
     root = ET.fromstring(xml)
@@ -70,7 +77,7 @@ def main():
             errors.append(str(exc)); print("WARN", source["name"], exc, file=sys.stderr)
     items = sorted(by_id.values(), key=lambda x:x.get("published_at",""), reverse=True)[:250]
     OUT.parent.mkdir(exist_ok=True)
-    OUT.write_text(json.dumps(items,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    OUT.write_text(json.dumps(items,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("Saved",len(items),"items; errors:",len(errors))
 
 if __name__ == "__main__": main()
