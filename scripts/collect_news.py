@@ -40,9 +40,9 @@ def preview_image(url):
             page = response.read(350000).decode("utf-8", "ignore")
             base = response.geturl()
         for pattern in (
-            r'<meta[^>]+property=["\\']og:image["\\'][^>]+content=["\\']([^"\\']+)',
-            r'<meta[^>]+content=["\\']([^"\\']+)["\\'][^>]+property=["\\']og:image["\\']',
-            r'<meta[^>]+name=["\\']twitter:image["\\'][^>]+content=["\\']([^"\\']+)',
+            r"""<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)""",
+            r"""<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']""",
+            r"""<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)""",
         ):
             match = re.search(pattern, page, re.I)
             if match:
