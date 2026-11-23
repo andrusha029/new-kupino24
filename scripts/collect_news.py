@@ -122,7 +122,8 @@ def parse(xml, source):
                 node = item.find(tag)
                 if node is not None and node.attrib.get("url"):
                     image = node.attrib["url"]; break
-        link = resolve_article_url(link)\n        text = (title + " " + summary).lower()
+        link = resolve_article_url(link)
+        text = (title + " " + summary).lower()
         if not title or not link or any(x in text for x in EXCLUDE): continue
         if not source.get("allow_all", False) and not any(x in text for x in KEYWORDS): continue
         uid = hashlib.sha256(link.split("#")[0].encode()).hexdigest()[:20]
